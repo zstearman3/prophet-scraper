@@ -20,7 +20,7 @@ class HTTPSService:
     print(games)
     return games
 
-  def rosters(self, database="prophet_test", team=None):
+  def rosters(self, database="db/prophet_dev", team=None):
     generic_url = HTTPSService.BASE_URL + "/team/roster/_/id/"
     connection = None
     try:
@@ -29,17 +29,12 @@ class HTTPSService:
                                     host="127.0.0.1",
                                     port="5432",
                                     database=database)
-
-      # Create a cursor to perform database operations
       cursor = connection.cursor()
-      # Print PostgreSQL details
       print("PostgreSQL server information")
       print(connection.get_dsn_parameters(), "\n")
-      # Executing a SQL query
-      cursor.execute("SELECT version();")
-      # Fetch result
+
+      cursor.execute("SELECT * FROM teams")
       record = cursor.fetchone()
-      print("You are connected to - ", record, "\n")
     except(Exception, Error) as error:
       print("Error while connecting to PostgreSQL", error)
     finally:
