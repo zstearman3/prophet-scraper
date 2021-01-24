@@ -14,21 +14,6 @@ class HTTPSService:
                                        port="5432",
                                        database=database)
 
-  def _get_espn_ids(self, team_id=None):
-    try:
-      cursor = self.connection.cursor()
-      if team_id:
-        cursor.execute(f"SELECT espn_id FROM teams WHERE id={team_id}")
-      else:
-        cursor.execute("SELECT espn_id FROM teams")
-      espn_ids = cursor.fetchall()
-    except(Exception, Error) as error:
-      print("Error while connecting to PostgreSQL", error)
-    finally:
-      if (self.connection):
-        cursor.close()
-        return espn_ids
-
   def schedule(self):
     url = f'{HTTPSService.BASE_URL}/scoreboard'
     page = requests.get(url)
