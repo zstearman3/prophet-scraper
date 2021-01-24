@@ -19,9 +19,9 @@ class Client:
     try:
       cursor = self.connection.cursor()
       if team_id:
-        cursor.execute(f"SELECT espn_id FROM teams WHERE id={team_id}")
+        cursor.execute(f"SELECT id, espn_id, school FROM teams WHERE id={team_id}")
       else:
-        cursor.execute("SELECT espn_id FROM teams")
+        cursor.execute("SELECT id, espn_id, school FROM teams")
       espn_ids = cursor.fetchall()
     except(Exception, Error) as error:
       print("Error while connecting to PostgreSQL", error)
@@ -39,8 +39,10 @@ class Client:
     service = HTTPSService()
 
   def rosters(self):
+    rosters = {}
     service = HTTPSService()
     espn_ids = self._get_espn_ids()
     for espn_id in espn_ids:
-      roster = service.roster(team_id=espn_id[0])
-      print(roster)
+      roster = service.roster(team_id=espn_id[1])
+      rosters[espn_id[0]] = roster
+    return rosters

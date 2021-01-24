@@ -51,8 +51,14 @@ class HTTPSService:
       attributes = player.find_all("td")
       if len(attributes) > 0:
         record = {}
+        record["espn_url"] = attributes[1].find("a").get("href")
         record["name"] = attributes[1].find("a").get_text()
         number_html = attributes[1].find("span")
         record["number"] = int(number_html.get_text()) if number_html else 0
+        record["position"] = attributes[2].get_text()
+        record["height"] = attributes[3].get_text()
+        record["weight"] = attributes[4].get_text()
+        record["class"] = attributes[5].get_text()
+        record["birthplace"] = attributes[6].get_text()
         roster.append(record)
     return roster
