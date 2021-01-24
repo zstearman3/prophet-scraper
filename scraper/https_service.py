@@ -7,8 +7,27 @@ from bs4 import BeautifulSoup
 class HTTPSService:
   BASE_URL = 'https://www.espn.com/mens-college-basketball'
 
-  def __init__(self):
-    self.name = "CBB Parser"
+  def __init__(self, database="db/prophet_dev"):
+    self.connection = psycopg2.connect(user="ec2-user",
+                                       password = os.getenv('PG_PASSWORD'),
+                                       host="127.0.0.1",
+                                       port="5432",
+                                       database=database)
+
+  def _get_espn_ids(self, team_id=None):
+    try:
+      cursor = self.connection.cursor()
+      if team_id:
+        cursor.execute(f"SELECT espn_id FROM teams WHERE id={team_id}")
+      else:
+        cursor.execute("SELECT espn_id FROM teams")
+      espn_ids = cursor.fetchall()
+    except(Exception, Error) as error:
+      print("Error while connecting to PostgreSQL", error)
+    finally:
+      if (self.connection):
+        cursor.close()
+        return espn_ids
 
   def schedule(self):
     url = f'{HTTPSService.BASE_URL}/scoreboard'
@@ -20,26 +39,20 @@ class HTTPSService:
     print(games)
     return games
 
-  def rosters(self, database="db/prophet_dev", team=None):
+  def roster(self, team_id):
+    roster = []
     generic_url = HTTPSService.BASE_URL + "/team/roster/_/id/"
-    connection = None
-    try:
-      connection = psycopg2.connect(user="ec2-user",
-                                    password = os.getenv('PG_PASSWORD'),
-                                    host="127.0.0.1",
-                                    port="5432",
-                                    database=database)
-      cursor = connection.cursor()
-      print("PostgreSQL server information")
-      print(connection.get_dsn_parameters(), "\n")
+    full_url = generic_url + str(team_id)
+    page = requests.get(full_url)
 
-      cursor.execute("SELECT * FROM teams")
-      record = cursor.fetchone()
-    except(Exception, Error) as error:
-      print("Error while connecting to PostgreSQL", error)
-    finally:
-      if (connection):
-        cursor.close()
-        connection.close()
-        print("PostgreSQL connection is closed")
-        return record
+    soup = BeautifulSoup(page.content, 'html.parser')
+    players = soup.find(class_='Roster').find_all(class_="Table__TR")
+    for player in players:
+      attributes = player.find_all("td")
+      if len(attributes) > 0:
+        record = {}
+        record["name"] = attributes[1].find("a").get_text()
+        number_html = attributes[1].find("span")
+        record["number"] = int(number_html.get_text()) if number_html else 0
+        roster.append(record)
+    return roster
