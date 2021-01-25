@@ -113,4 +113,5 @@ class Client:
       player_list.append(team_id)
       player_tuple = tuple(player_list)
       roster_tuples.append(player_tuple)
-    return keys_string, roster_tuples
+      rosters = tuple(roster_tuples)
+    return keys_string, rosters
