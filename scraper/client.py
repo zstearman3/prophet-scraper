@@ -60,6 +60,7 @@ class Client:
       cursor.execute(query, (roster[0], ))
     except(Exception, Error) as error:
       print("Error while connecting to PostgreSQL", error)
+    self.connection.commit()
 
   def _get_positions_and_klasses(self):
     try:
@@ -96,10 +97,16 @@ class Client:
       player_list = []
       for key in keys:
         if key == "position":
-          position_id = positions[player[key]]
+          try:
+            position_id = positions[player[key]]
+          except KeyError:
+            position_id = None
           player_list.append(position_id)
         elif key == "class":
-          klass_id = klasses[player[key]]
+          try:
+            klass_id = klasses[player[key]]
+          except KeyError:
+            klass_id = None
           player_list.append(klass_id)
         else:
           player_list.append(player[key])
