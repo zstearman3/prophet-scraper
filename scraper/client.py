@@ -8,15 +8,20 @@ from scraper.https_service import HTTPSService
 
 def convert_roster_to_tuples(roster):
   keys = ("first_name",
-          "last_name",
-          "number",
-          "position",
-          "class",
-          "height",
-          "weight",
-          "birthplace",
-          "espn_id",
-          "espn_url",)
+         "last_name",
+         "number",
+         "position",
+         "class",
+         "height",
+         "weight",
+         "birthplace",
+         "espn_id",
+         "espn_url",)
+  keys_string = "("
+  for key in keys:
+    keys_string += f"{key}, "
+  keys_string = keys_string[:-2] + ")"
+  keys_string = keys_string.replace("number", "jersey_number")
   roster_tuples = []
   for player in roster:
     player_list = []
@@ -24,7 +29,7 @@ def convert_roster_to_tuples(roster):
       player_list.append(player[key])
     player_tuple = tuple(player_list)
     roster_tuples.append(player_tuple)
-  return keys, roster_tuples
+  return keys_string, roster_tuples
 
 
 class Client:
@@ -70,4 +75,12 @@ class Client:
 
   def update_roster(self, team_id, roster):
     keys, roster = convert_roster_to_tuples(roster)
-    print(keys)
+    try:
+      query = """
+        INSERT INTO players {0}
+        VALUES %s;
+      """.format(keys)
+      cursor = self.connection.cursor()
+      cursor.execute(query, (roster[0], ))
+    except(Exception, Error) as error:
+      print("Error while connecting to PostgreSQL", error)
