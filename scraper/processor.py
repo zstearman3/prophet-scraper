@@ -11,6 +11,13 @@ def convert_weight(weight):
   weight = int(weight[0]) if weight[0].isnumeric() else None
   return weight
 
+def get_espn_id(espn_url):
+  espn_id = espn_url.split("id/")
+  espn_id = espn_id[1]
+  espn_id = espn_id.split("/")
+  espn_id = espn_id[0]
+  return espn_id
+
 class Processor:
   def format_roster(self, roster):
     formatted_roster = []
@@ -20,5 +27,6 @@ class Processor:
       player["last_name"] = name[1]
       player["height"] = convert_height(player["height"])
       player["weight"] = convert_weight(player["weight"])
+      player["espn_id"] = get_espn_id(player["espn_url"])
       formatted_roster.append(player)
     return formatted_roster
