@@ -6,34 +6,6 @@ from bs4 import BeautifulSoup
 
 from scraper.https_service import HTTPSService
 
-def convert_roster_to_tuples(roster):
-  keys = ("first_name",
-         "last_name",
-         "number",
-         "position",
-         "class",
-         "height",
-         "weight",
-         "birthplace",
-         "espn_id",
-         "espn_url",)
-  keys_string = "("
-  for key in keys:
-    keys_string += f"{key}, "
-  keys_string = keys_string[:-2] + ")"
-  keys_string = keys_string.replace("number", "jersey_number")
-  keys_string = keys_string.replace("position", "position_id")
-  keys_string = keys_string.replace("class", "klass_id")
-  roster_tuples = []
-  for player in roster:
-    player_list = []
-    for key in keys:
-      player_list.append(player[key])
-    player_tuple = tuple(player_list)
-    roster_tuples.append(player_tuple)
-  return keys_string, roster_tuples
-
-
 class Client:
 
   def __init__(self, database="db/prophet_dev"):
@@ -76,9 +48,9 @@ class Client:
     return rosters
 
   def update_roster(self, team_id, roster):
-    keys, roster = convert_roster_to_tuples(roster)
-    positions, klasses = self._get_positions_and_klasses()
-    print(positions)
+    keys, roster = self.convert_roster_to_tuples(roster, team_id)
+    print(keys)
+    print(roster[0])
     try:
       query = """
         INSERT INTO players {0}
@@ -92,10 +64,46 @@ class Client:
   def _get_positions_and_klasses(self):
     try:
       cursor = self.connection.cursor()
-      cursor.execute("SELECT id, abbreviation FROM positions")
+      cursor.execute("SELECT abbreviation, id FROM positions")
       positions = dict(cursor.fetchall())
-      cursor.execute("SELECT id, abbreviation FROM klasses")
+      cursor.execute("SELECT abbreviation, id FROM klasses")
       klasses = dict(cursor.fetchall())
       return(positions, klasses)
     except(Exception, Error) as error:
       print("Error while connecting to PostgreSQL", error)
+
+  def convert_roster_to_tuples(self, roster, team_id):
+    positions, klasses = self._get_positions_and_klasses()
+    keys = ("first_name",
+           "last_name",
+           "number",
+           "position",
+           "class",
+           "height",
+           "weight",
+           "birthplace",
+           "espn_id",
+           "espn_url",)
+    keys_string = "("
+    for key in keys:
+      keys_string += f"{key}, "
+    keys_string += "team_id)"
+    keys_string = keys_string.replace("number", "jersey_number")
+    keys_string = keys_string.replace("position", "position_id")
+    keys_string = keys_string.replace("class", "klass_id")
+    roster_tuples = []
+    for player in roster:
+      player_list = []
+      for key in keys:
+        if key == "position":
+          position_id = positions[player[key]]
+          player_list.append(position_id)
+        elif key == "class":
+          klass_id = klasses[player[key]]
+          player_list.append(klass_id)
+        else:
+          player_list.append(player[key])
+      player_list.append(team_id)
+      player_tuple = tuple(player_list)
+      roster_tuples.append(player_tuple)
+    return keys_string, roster_tuples
