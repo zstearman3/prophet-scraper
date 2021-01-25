@@ -6,6 +6,27 @@ from bs4 import BeautifulSoup
 
 from scraper.https_service import HTTPSService
 
+def convert_roster_to_tuples(roster):
+  keys = ("first_name",
+          "last_name",
+          "number",
+          "position",
+          "class",
+          "height",
+          "weight",
+          "birthplace",
+          "espn_id",
+          "espn_url",)
+  roster_tuples = []
+  for player in roster:
+    player_list = []
+    for key in keys:
+      player_list.append(player[key])
+    player_tuple = tuple(player_list)
+    roster_tuples.append(player_tuple)
+  return keys, roster_tuples
+
+
 class Client:
 
   def __init__(self, database="db/prophet_dev"):
@@ -38,7 +59,7 @@ class Client:
   def hierarchy(self):
     service = HTTPSService()
 
-  def rosters(self):
+  def get_rosters(self):
     rosters = {}
     service = HTTPSService()
     espn_ids = self._get_espn_ids()
@@ -46,3 +67,7 @@ class Client:
       roster = service.roster(team_id=espn_id[1])
       rosters[espn_id[0]] = roster
     return rosters
+
+  def update_roster(self, team_id, roster):
+    keys, roster = convert_roster_to_tuples(roster)
+    print(keys)
