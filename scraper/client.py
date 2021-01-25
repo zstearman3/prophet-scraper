@@ -22,6 +22,8 @@ def convert_roster_to_tuples(roster):
     keys_string += f"{key}, "
   keys_string = keys_string[:-2] + ")"
   keys_string = keys_string.replace("number", "jersey_number")
+  keys_string = keys_string.replace("position", "position_id")
+  keys_string = keys_string.replace("class", "klass_id")
   roster_tuples = []
   for player in roster:
     player_list = []
@@ -75,6 +77,8 @@ class Client:
 
   def update_roster(self, team_id, roster):
     keys, roster = convert_roster_to_tuples(roster)
+    positions, klasses = self._get_positions_and_klasses()
+    print(positions)
     try:
       query = """
         INSERT INTO players {0}
@@ -82,5 +86,16 @@ class Client:
       """.format(keys)
       cursor = self.connection.cursor()
       cursor.execute(query, (roster[0], ))
+    except(Exception, Error) as error:
+      print("Error while connecting to PostgreSQL", error)
+
+  def _get_positions_and_klasses(self):
+    try:
+      cursor = self.connection.cursor()
+      cursor.execute("SELECT id, abbreviation FROM positions")
+      positions = dict(cursor.fetchall())
+      cursor.execute("SELECT id, abbreviation FROM klasses")
+      klasses = dict(cursor.fetchall())
+      return(positions, klasses)
     except(Exception, Error) as error:
       print("Error while connecting to PostgreSQL", error)
