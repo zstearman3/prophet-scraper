@@ -6,6 +6,12 @@ from bs4 import BeautifulSoup
 
 from scraper.https_service import HTTPSService
 
+def replace_keys(my_string):
+  my_string = my_string.replace("number", "jersey_number")
+  my_string = my_string.replace("position", "position_id")
+  my_string = my_string.replace("class", "klass_id")
+  return my_string
+
 class Client:
 
   def __init__(self, database="db/prophet_dev"):
@@ -48,16 +54,17 @@ class Client:
     return rosters
 
   def update_roster(self, team_id, roster):
-    keys, roster = self.convert_roster_to_tuples(roster, team_id)
-    print(keys)
-    print(roster[0])
+    keys, roster = self.get_roster_query_strings(roster, team_id)
+    roster_string = str(roster)[1:-1]
     try:
       query = """
-        INSERT INTO players {0}
-        VALUES %s;
-      """.format(keys)
+        INSERT INTO players {0} VALUES
+        {1}
+        ON CONFLICT (espn_id)
+        DO NOTHING
+      """.format(keys, roster)
       cursor = self.connection.cursor()
-      cursor.execute(query, (roster[0], ))
+      cursor.execute(query)
     except(Exception, Error) as error:
       print("Error while connecting to PostgreSQL", error)
     self.connection.commit()
@@ -73,7 +80,7 @@ class Client:
     except(Exception, Error) as error:
       print("Error while connecting to PostgreSQL", error)
 
-  def convert_roster_to_tuples(self, roster, team_id):
+  def get_roster_query_strings(self, roster, team_id):
     positions, klasses = self._get_positions_and_klasses()
     keys = ("first_name",
            "last_name",
@@ -89,9 +96,7 @@ class Client:
     for key in keys:
       keys_string += f"{key}, "
     keys_string += "team_id)"
-    keys_string = keys_string.replace("number", "jersey_number")
-    keys_string = keys_string.replace("position", "position_id")
-    keys_string = keys_string.replace("class", "klass_id")
+    keys_string = replace_keys(keys_string)
     roster_tuples = []
     for player in roster:
       player_list = []
@@ -109,9 +114,14 @@ class Client:
             klass_id = None
           player_list.append(klass_id)
         else:
-          player_list.append(player[key])
+          value = player[key]
+          value = value.replace("'", "''") if isinstance(value, str) else value
+          player_list.append(value)
       player_list.append(team_id)
       player_tuple = tuple(player_list)
       roster_tuples.append(player_tuple)
-      rosters = tuple(roster_tuples)
-    return keys_string, rosters
+      roster = tuple(roster_tuples)
+      roster_string = str(roster)[1:-1]
+      roster_string = roster_string.replace("None", "null")
+      roster_string = roster_string.replace('"', "'")
+    return keys_string, roster_string
