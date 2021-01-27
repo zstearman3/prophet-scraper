@@ -54,15 +54,16 @@ class Client:
     return rosters
 
   def update_roster(self, team_id, roster):
-    keys, roster = self.get_roster_query_strings(roster, team_id)
+    keys, roster, excluded = self.get_roster_query_strings(roster, team_id)
     roster_string = str(roster)[1:-1]
     try:
       query = """
         INSERT INTO players {0} VALUES
         {1}
         ON CONFLICT (espn_id)
-        DO NOTHING
-      """.format(keys, roster)
+        DO UPDATE SET
+        {0} = {2}
+      """.format(keys, roster, excluded)
       cursor = self.connection.cursor()
       cursor.execute(query)
     except(Exception, Error) as error:
@@ -80,6 +81,9 @@ class Client:
     except(Exception, Error) as error:
       print("Error while connecting to PostgreSQL", error)
 
+  # This function takes a list of player dictionaries and returns strings formatted
+  # correctly for use in a postgresql query.
+
   def get_roster_query_strings(self, roster, team_id):
     positions, klasses = self._get_positions_and_klasses()
     keys = ("first_name",
@@ -93,10 +97,14 @@ class Client:
            "espn_id",
            "espn_url",)
     keys_string = "("
+    excluded_string = "("
     for key in keys:
       keys_string += f"{key}, "
+      excluded_string += f"EXCLUDED.{key}, "
     keys_string += "team_id)"
+    excluded_string += "EXCLUDED.team_id)"
     keys_string = replace_keys(keys_string)
+    excluded_string = replace_keys(excluded_string)
     roster_tuples = []
     for player in roster:
       player_list = []
@@ -124,4 +132,4 @@ class Client:
       roster_string = str(roster)[1:-1]
       roster_string = roster_string.replace("None", "null")
       roster_string = roster_string.replace('"', "'")
-    return keys_string, roster_string
+    return keys_string, roster_string, excluded_string
