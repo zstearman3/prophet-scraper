@@ -42,12 +42,15 @@ class Client:
     processor = Processor()
     games = service.schedule()
     processed_games = []
+    game_results = []
+
     for game in games:
       processed_game = processor.process_game(game)
       processed_games.append(processed_game)
-    # for game in processed_games:
-    #   service.box_score(game["espn_id"])
-    service.box_score(processed_games[0]["espn_id"])
+    for game in processed_games:
+      results = service.box_score(game["espn_id"])
+      game_results.append(results)
+    return game_results
 
   def hierarchy(self):
     service = HTTPSService()

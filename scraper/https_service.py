@@ -33,7 +33,9 @@ class HTTPSService:
     game_json = json.loads(soup.text)
     header = game_json["gamepackageJSON"]["header"]
     box_score = game_json["gamepackageJSON"]["boxscore"]
-    print(header)
+    plays = game_json["gamepackageJSON"]["plays"]
+
+    return {"header": header, "box_score": box_score}
 
   def roster(self, team_id):
     roster = []

@@ -37,3 +37,6 @@ class Processor:
     game = game["competitions"][0]
     new_game["date"] = game['date']
     return new_game
+
+  def process_game_details(self, game):
+    print(game)
