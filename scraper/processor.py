@@ -30,3 +30,10 @@ class Processor:
       player["espn_id"] = get_espn_id(player["espn_url"])
       formatted_roster.append(player)
     return formatted_roster
+
+  def process_game(self, game):
+    new_game = {}
+    new_game["espn_id"] = game['uid'].split("~e:", 1)[1]
+    game = game["competitions"][0]
+    new_game["date"] = game['date']
+    return new_game

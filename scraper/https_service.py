@@ -1,6 +1,7 @@
 import os
 import requests
 import psycopg2
+import json
 from psycopg2 import Error
 from bs4 import BeautifulSoup
 
@@ -15,14 +16,24 @@ class HTTPSService:
                                        database=database)
 
   def schedule(self):
-    url = f'{HTTPSService.BASE_URL}/scoreboard'
+    url = f'{HTTPSService.BASE_URL}/scoreboard/_/group/50/date/20210112?xhr=1'
     page = requests.get(url)
 
     soup = BeautifulSoup(page.content, 'html.parser')
-    games = soup.find_all('div', class_='scoreboards')
+    schedule_json = json.loads(soup.text)
+    games = schedule_json['content']['sbData']['events']
 
-    print(games)
     return games
+
+  def box_score(self, espn_id):
+    url = f'{HTTPSService.BASE_URL}/boxscore?gameId={espn_id}&xhr=1'
+    page = requests.get(url)
+
+    soup = BeautifulSoup(page.content, 'html.parser')
+    game_json = json.loads(soup.text)
+    header = game_json["gamepackageJSON"]["header"]
+    box_score = game_json["gamepackageJSON"]["boxscore"]
+    print(header)
 
   def roster(self, team_id):
     roster = []

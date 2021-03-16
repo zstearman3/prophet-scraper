@@ -5,6 +5,7 @@ from psycopg2 import Error
 from bs4 import BeautifulSoup
 
 from scraper.https_service import HTTPSService
+from scraper.processor import Processor
 
 def replace_keys(my_string):
   my_string = my_string.replace("number", "jersey_number")
@@ -38,8 +39,15 @@ class Client:
 
   def schedule(self):
     service = HTTPSService()
+    processor = Processor()
     games = service.schedule()
-    return games
+    processed_games = []
+    for game in games:
+      processed_game = processor.process_game(game)
+      processed_games.append(processed_game)
+    # for game in processed_games:
+    #   service.box_score(game["espn_id"])
+    service.box_score(processed_games[0]["espn_id"])
 
   def hierarchy(self):
     service = HTTPSService()
