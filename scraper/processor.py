@@ -31,12 +31,34 @@ class Processor:
       formatted_roster.append(player)
     return formatted_roster
 
-  def process_game(self, game):
-    new_game = {}
-    new_game["espn_id"] = game['uid'].split("~e:", 1)[1]
-    game = game["competitions"][0]
-    new_game["date"] = game['date']
-    return new_game
+  def get_espn_id(self, game):
+    espn_id = game['uid'].split("~e:", 1)[1]
+    return espn_id
 
   def process_game_details(self, game):
-    print(game)
+    game_record = {}
+    home_team_game_record = {}
+    away_team_game_record = {}
+    header = game["header"]
+    competition = header["competitions"][0]
+    home_team = competition["competitors"][0]
+    away_team = competition["competitors"][1]
+    game_record["id"] = header["id"]
+    game_record["is_tournament"] = header["league"]["isTournament"]
+    game_record["neutral_site"] = competition["neutralSite"]
+    game_record["status"] = competition["status"]["type"]["description"]
+    game_record["date"] = competition["date"]
+    game_record["in_conference"] = competition["conferenceCompetition"]
+    game_record["home_team_espn_id"] = home_team["id"]
+    game_record["home_team_score"] = home_team["score"]
+    if "winner" in home_team : game_record["home_team_winner"] = home_team["winner"]
+    if "linescores" in home_team :
+      game_record["home_team_first_half_score"] = home_team["linescores"][0]["displayValue"]
+      game_record["home_team_second_half_score"] = home_team["linescores"][1]["displayValue"]
+    game_record["away_team_espn_id"] = away_team["id"]
+    game_record["away_team_score"] = away_team["score"]
+    if "winner" in away_team : game_record["away_team_winner"] = away_team["winner"]
+    if "linescores" in away_team :
+      game_record["away_team_first_half_score"] = away_team["linescores"][0]["displayValue"]
+      game_record["away_team_second_half_score"] = away_team["linescores"][1]["displayValue"]
+    print(game["box_score"])

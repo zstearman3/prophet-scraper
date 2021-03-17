@@ -4,5 +4,6 @@ from scraper.processor import Processor
 client = Client()
 processor = Processor()
 games = client.schedule()
-for game in games:
-  processed_game = processor.process_game_details(game)
+# for game in games:
+#   processed_game = processor.process_game_details(game)
+processed_game = processor.process_game_details(games[0])

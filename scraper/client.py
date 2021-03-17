@@ -41,14 +41,14 @@ class Client:
     service = HTTPSService()
     processor = Processor()
     games = service.schedule()
-    processed_games = []
+    espn_ids = []
     game_results = []
 
     for game in games:
-      processed_game = processor.process_game(game)
-      processed_games.append(processed_game)
-    for game in processed_games:
-      results = service.box_score(game["espn_id"])
+      espn_id = processor.get_espn_id(game)
+      espn_ids.append(espn_id)
+    for espn_id in espn_ids:
+      results = service.box_score(espn_id)
       game_results.append(results)
     return game_results
 
