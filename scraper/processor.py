@@ -35,7 +35,7 @@ class Processor:
     espn_id = game['uid'].split("~e:", 1)[1]
     return espn_id
 
-  def process_game_details(self, game):
+  def process_game_details(self, game, id_dictionary):
     game_record = {}
     home_team_game_record = {}
     away_team_game_record = {}
@@ -61,4 +61,12 @@ class Processor:
     if "linescores" in away_team :
       game_record["away_team_first_half_score"] = away_team["linescores"][0]["displayValue"]
       game_record["away_team_second_half_score"] = away_team["linescores"][1]["displayValue"]
-    print(game["box_score"])
+    if int(game_record["home_team_espn_id"]) in id_dictionary.keys():
+      game_record["home_team_id"] = id_dictionary[int(game_record["home_team_espn_id"])]
+    else:
+      game_record["home_team_id"] = None
+    if int(game_record["away_team_espn_id"]) in id_dictionary.keys():
+      game_record["away_team_id"] = id_dictionary[int(game_record["away_team_espn_id"])]
+    else:
+      game_record["away_team_id"] = None
+    return(game_record)

@@ -2,6 +2,7 @@ import os
 import requests
 import psycopg2
 import json
+from datetime import datetime
 from psycopg2 import Error
 from bs4 import BeautifulSoup
 
@@ -15,8 +16,9 @@ class HTTPSService:
                                        port="5432",
                                        database=database)
 
-  def schedule(self):
-    url = f'{HTTPSService.BASE_URL}/scoreboard/_/group/50/date/20210112?xhr=1'
+  def schedule(self, date):
+    date_string = datetime.strftime(date, "%Y%m%d")
+    url = f'{HTTPSService.BASE_URL}/scoreboard/_/group/50/date/{date_string}?xhr=1'
     page = requests.get(url)
 
     soup = BeautifulSoup(page.content, 'html.parser')

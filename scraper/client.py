@@ -37,10 +37,10 @@ class Client:
         cursor.close()
         return espn_ids
 
-  def schedule(self):
+  def schedule(self, date):
     service = HTTPSService()
     processor = Processor()
-    games = service.schedule()
+    games = service.schedule(date)
     espn_ids = []
     game_results = []
 
@@ -144,3 +144,10 @@ class Client:
       roster_string = roster_string.replace("None", "null")
       roster_string = roster_string.replace('"', "'")
     return keys_string, roster_string, excluded_string
+
+  def get_all_espn_ids(self):
+    espn_ids = self._get_espn_ids()
+    id_dictionary = {}
+    for team in espn_ids:
+      id_dictionary[team[1]] = team[0]
+    return id_dictionary
