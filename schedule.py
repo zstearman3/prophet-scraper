@@ -31,4 +31,4 @@ if __name__ == '__main__':
     for game in games:
         processed_game = processor.process_game_details(game, id_dictionary)
         processed_games.append(processed_game)
-    print(processed_games)
+    client.update_games(processed_games)

@@ -16,11 +16,11 @@ def replace_keys(my_string):
 class Client:
 
   def __init__(self, database="db/prophet_dev"):
-    self.connection = psycopg2.connect(user="ec2-user",
+    self.connection = psycopg2.connect(user=os.getenv('PG_USER'),
                                        password = os.getenv('PG_PASSWORD'),
-                                       host="127.0.0.1",
+                                       host=os.getenv('PG_HOST'),
                                        port="5432",
-                                       database=database)
+                                       database=os.getenv('PG_DATABASE'))
 
   def _get_espn_ids(self, team_id=None):
     try:
@@ -151,3 +151,62 @@ class Client:
     for team in espn_ids:
       id_dictionary[team[1]] = team[0]
     return id_dictionary
+
+  def get_game_query_strings(self, games_array):
+    keys = (
+      "espn_id",
+      "is_tournament",
+      "neutral_site",
+      "status",
+      "date",
+      "in_conference",
+      "home_team_id",
+      "home_team_score",
+      "away_team_id",
+      "away_team_score",
+      "home_team_first_half_score",
+      "home_team_second_half_score",
+      "away_team_first_half_score",
+      "away_team_second_half_score",
+      "home_team_winner",
+      "away_team_winner",
+    )
+    keys_string = "("
+    excluded_string = "("
+    for key in keys:
+      keys_string += f"{key}, "
+      excluded_string += f"EXCLUDED.{key}, "
+    keys_string = keys_string[:-2]
+    excluded_string = excluded_string[:-2]
+    keys_string += ")"
+    excluded_string += ")"
+    games_tuples = []
+    for game in games_array:
+      game_values = []
+      for key in keys:
+        value = game[key] if key in game else None
+        value = value.replace("'", "''") if isinstance(value, str) else value
+        game_values.append(value)
+      game_tuple = tuple(game_values)
+      games_tuples.append(game_tuple)
+    games_tuple = tuple(games_tuples)
+    games_string = str(games_tuple)[1:-1]
+    games_string = games_string.replace("None", "null")
+    games_string = games_string.replace('"', "'")
+    return keys_string, games_string, excluded_string
+
+  def update_games(self, games_array):
+    keys, games, excluded = self.get_game_query_strings(games_array)
+    try:
+      query = """
+        INSERT INTO games {0} VALUES
+        {1}
+        ON CONFLICT (espn_id)
+        DO UPDATE SET
+        {0} = {2}
+      """.format(keys, games, excluded)
+      cursor = self.connection.cursor()
+      cursor.execute(query)
+    except(Exception, Error) as error:
+      print("Error while connecting to PostgreSQL", error)
+    self.connection.commit()

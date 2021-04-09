@@ -43,7 +43,7 @@ class Processor:
     competition = header["competitions"][0]
     home_team = competition["competitors"][0]
     away_team = competition["competitors"][1]
-    game_record["id"] = header["id"]
+    game_record["espn_id"] = header["id"]
     game_record["is_tournament"] = header["league"]["isTournament"]
     game_record["neutral_site"] = competition["neutralSite"]
     game_record["status"] = competition["status"]["type"]["description"]
@@ -51,16 +51,21 @@ class Processor:
     game_record["in_conference"] = competition["conferenceCompetition"]
     game_record["home_team_espn_id"] = home_team["id"]
     game_record["home_team_score"] = home_team["score"]
-    if "winner" in home_team : game_record["home_team_winner"] = home_team["winner"]
     if "linescores" in home_team :
       game_record["home_team_first_half_score"] = home_team["linescores"][0]["displayValue"]
       game_record["home_team_second_half_score"] = home_team["linescores"][1]["displayValue"]
     game_record["away_team_espn_id"] = away_team["id"]
     game_record["away_team_score"] = away_team["score"]
-    if "winner" in away_team : game_record["away_team_winner"] = away_team["winner"]
     if "linescores" in away_team :
       game_record["away_team_first_half_score"] = away_team["linescores"][0]["displayValue"]
       game_record["away_team_second_half_score"] = away_team["linescores"][1]["displayValue"]
+    if int(game_record["home_team_score"]) > 0 and int(game_record["away_team_score"]) > 0:
+      if game_record["home_team_score"] > game_record["away_team_score"]:
+        game_record["home_team_winner"] = True
+        game_record["away_team_winner"] = False
+      elif game_record["away_team_score"] > game_record["home_team_score"]:
+        game_record["home_team_winner"] = False
+        game_record["away_team_winner"] = True
     if int(game_record["home_team_espn_id"]) in id_dictionary.keys():
       game_record["home_team_id"] = id_dictionary[int(game_record["home_team_espn_id"])]
     else:
