@@ -1,7 +1,4 @@
-amazon-linux-extras==1.6.13
 astroid==1.6.6
-aws-cfn-bootstrap==1.4
-awscli==1.18.212
 Babel==0.9.6
 backports.functools-lru-cache==1.6.1
 backports.ssl-match-hostname==3.5.0.1
