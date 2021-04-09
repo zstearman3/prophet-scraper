@@ -16,6 +16,7 @@ def replace_keys(my_string):
 class Client:
 
   def __init__(self, database="db/prophet_dev"):
+    print(os.getenv('PG_DATABASE'))
     self.connection = psycopg2.connect(user=os.getenv('PG_USER'),
                                        password = os.getenv('PG_PASSWORD'),
                                        host=os.getenv('PG_HOST'),
