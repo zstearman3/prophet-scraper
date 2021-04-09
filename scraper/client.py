@@ -22,11 +22,11 @@ class Client:
     port ="5432"
     database = os.getenv('PG_DATABASE')
     print(user, password, host, port, database)
-    self.connection = psycopg2.connect(user= os.getenv('PG_USER'),
-                                       password = os.getenv('PG_PASSWORD'),
-                                       host= os.getenv('PG_HOST'),
-                                       port="5432",
-                                       database= os.getenv('PG_DATABASE'))
+    self.connection = psycopg2.connect(user = user,
+                                       password = password,
+                                       host = host,
+                                       port = "5432",
+                                       database = database)
 
   def _get_espn_ids(self, team_id=None):
     try:
