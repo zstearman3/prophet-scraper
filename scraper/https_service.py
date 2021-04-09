@@ -10,11 +10,11 @@ class HTTPSService:
   BASE_URL = 'https://www.espn.com/mens-college-basketball'
 
   def __init__(self, database="db/prophet_dev"):
-    self.connection = psycopg2.connect(user="ec2-user",
-                                       password = os.getenv('PG_PASSWORD'),
-                                       host="127.0.0.1",
+    self.connection = psycopg2.connect(user=os.getenv('PG_USER'),
+                                       password=os.getenv('PG_PASSWORD'),
+                                       host=os.getenv('PG_HOST'),
                                        port="5432",
-                                       database=database)
+                                       database=os.getenv('PG_DATABASE'))
 
   def schedule(self, date):
     date_string = datetime.strftime(date, "%Y%m%d")
