@@ -35,10 +35,29 @@ class Processor:
     espn_id = game['uid'].split("~e:", 1)[1]
     return espn_id
 
-  def process_game_details(self, game, id_dictionary):
-    game_record = {}
+  def parse_team_game(self, team_game):
+    return True
+
+  def get_team_game_records(self, box_score, home_team_id, away_team_id):
     home_team_game_record = {}
     away_team_game_record = {}
+    team_box_score_1 = box_score[0]
+    team_box_score_2 = box_score[1]
+
+    if team_box_score_1["team"]["id"] == away_team_id:
+      away_team_game_record = self.parse_team_game(team_box_score_1)
+    elif team_box_score_1["team"]["id"] == home_team_id:
+      home_team_game_record = self.parse_team_game(team_box_score_1)
+
+    if team_box_score_2["team"]["id"] == away_team_id:
+      away_team_game_record = self.parse_team_game(team_box_score_1)
+    elif team_box_score_2["team"]["id"] == home_team_id:
+      home_team_game_record = self.parse_team_game(team_box_score_1)
+
+    return home_team_game_record, away_team_game_record
+
+  def process_game_details(self, game, id_dictionary):
+    game_record = {}
     header = game["header"]
     competition = header["competitions"][0]
     home_team = competition["competitors"][0]
@@ -74,4 +93,9 @@ class Processor:
       game_record["away_team_id"] = id_dictionary[int(game_record["away_team_espn_id"])]
     else:
       game_record["away_team_id"] = None
+
+    home_team_game_record, away_team_game_record = self.get_team_game_records(game["box_score"]["teams"],
+                                                    game_record["home_team_espn_id"],
+                                                    game_record["away_team_espn_id"])
+
     return(game_record)

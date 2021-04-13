@@ -26,6 +26,7 @@ if __name__ == '__main__':
     client = Client()
     processor = Processor()
     games = client.schedule(start_date)
+    print(games[0])
     id_dictionary = client.get_all_espn_ids()
     processed_games = []
     for game in games:
