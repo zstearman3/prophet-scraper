@@ -1,6 +1,6 @@
 import sys
 import getopt
-from datetime import datetime
+from datetime import datetime, timedelta
 from scraper.client import Client
 from scraper.processor import Processor
 
@@ -9,9 +9,10 @@ if __name__ == '__main__':
     full_cmd_arguments = sys.argv
     argument_list = full_cmd_arguments[1:]
 
-    short_options = "s:d"
-    long_options = ["start_date=", "days="]
+    short_options = "s:d:a"
+    long_options = ["start_date=", "days=", "all="]
     start_date = datetime.strptime("03/02/2021", "%m/%d/%Y")
+    num_days = 1
 
     try:
         arguements, values = getopt.getopt(argument_list, short_options, long_options)
@@ -22,10 +23,19 @@ if __name__ == '__main__':
     for current_arguement, current_value in arguements:
         if current_arguement in ("-s", "--start_date"):
             start_date = datetime.strptime(current_value, "%m/%d/%Y")
+        if current_arguement in ("-d", "--days"):
+            num_days = int(current_value)
+        if current_arguement in ("-a", "--all"):
+            get_all = True
+            year = current_value
+
 
     client = Client()
     processor = Processor()
-    games = client.schedule(start_date)
+    games = []
+    for i in (0, num_days - 1):
+        days = timedelta(i)
+        games.extend(client.schedule(start_date - days))
     id_dictionary = client.get_all_espn_ids()
     processed_games = []
     for game in games:
