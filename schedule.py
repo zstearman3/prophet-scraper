@@ -33,7 +33,7 @@ if __name__ == '__main__':
     client = Client()
     processor = Processor()
     games = []
-    for i in (0, num_days - 1):
+    for i in range(num_days):
         days = timedelta(i)
         games.extend(client.schedule(start_date - days))
     id_dictionary = client.get_all_espn_ids()
