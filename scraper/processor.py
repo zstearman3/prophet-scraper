@@ -48,6 +48,14 @@ class Processor:
       if stat["label"] == "FG":
         team_game_record["field_goals_made"], team_game_record["field_goals_attempted"] = (
           parse_makes_attempts(stat["displayValue"]))
+      if stat["label"] == "3PT":
+        team_game_record["three_pointers_made"], team_game_record["three_pointers_attempted"] = (
+          parse_makes_attempts(stat["displayValue"]))
+      if stat["label"] == "FT":
+        team_game_record["free_throws_made"], team_game_record["free_throws_attempted"] = (
+          parse_makes_attempts(stat["displayValue"]))
+      if stat["label"] == "Rebounds":
+        team_game_record["rebounds"] = stat["displayValue"]
     print(team_game_record)
     return team_game_record
 
