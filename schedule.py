@@ -38,7 +38,8 @@ if __name__ == '__main__':
         games.extend(client.schedule(start_date - days))
     id_dictionary = client.get_all_espn_ids()
     processed_games = []
-    for game in games:
-        processed_game = processor.process_game_details(game, id_dictionary)
-        processed_games.append(processed_game)
-    client.update_games(processed_games)
+    game = games[0]
+    # for game in games:
+    processed_game = processor.process_game_details(game, id_dictionary)
+    processed_games.append(processed_game)
+    # client.update_games(processed_games)

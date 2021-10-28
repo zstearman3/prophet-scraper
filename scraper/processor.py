@@ -18,6 +18,12 @@ def get_espn_id(espn_url):
   espn_id = espn_id[0]
   return espn_id
 
+def parse_makes_attempts(value_string):
+  values = value_string.split("-")
+  makes = values[0]
+  attempts = values[1]
+  return makes, attempts
+
 class Processor:
   def format_roster(self, roster):
     formatted_roster = []
@@ -35,24 +41,31 @@ class Processor:
     espn_id = game['uid'].split("~e:", 1)[1]
     return espn_id
 
-  def parse_team_game(self, team_game):
-    return True
+  def parse_team_game(self, team_game, team_id):
+    team_game_record = {}
+    team_game_record["team_id"] = team_id
+    for stat in team_game["statistics"]:
+      if stat["label"] == "FG":
+        team_game_record["field_goals_made"], team_game_record["field_goals_attempted"] = (
+          parse_makes_attempts(stat["displayValue"]))
+    print(team_game_record)
+    return team_game_record
 
-  def get_team_game_records(self, box_score, home_team_id, away_team_id):
+  def get_team_game_records(self, box_score, home_espn_id, away_espn_id, home_id, away_id):
     home_team_game_record = {}
     away_team_game_record = {}
     team_box_score_1 = box_score[0]
     team_box_score_2 = box_score[1]
 
-    if team_box_score_1["team"]["id"] == away_team_id:
-      away_team_game_record = self.parse_team_game(team_box_score_1)
-    elif team_box_score_1["team"]["id"] == home_team_id:
-      home_team_game_record = self.parse_team_game(team_box_score_1)
+    if team_box_score_1["team"]["id"] == away_espn_id:
+      away_team_game_record = self.parse_team_game(team_box_score_1, away_id)
+    elif team_box_score_1["team"]["id"] == home_espn_id:
+      home_team_game_record = self.parse_team_game(team_box_score_1, home_id)
 
-    if team_box_score_2["team"]["id"] == away_team_id:
-      away_team_game_record = self.parse_team_game(team_box_score_1)
-    elif team_box_score_2["team"]["id"] == home_team_id:
-      home_team_game_record = self.parse_team_game(team_box_score_1)
+    if team_box_score_2["team"]["id"] == away_espn_id:
+      away_team_game_record = self.parse_team_game(team_box_score_2, away_id)
+    elif team_box_score_2["team"]["id"] == home_espn_id:
+      home_team_game_record = self.parse_team_game(team_box_score_2, home_id)
 
     return home_team_game_record, away_team_game_record
 
@@ -96,6 +109,8 @@ class Processor:
 
     home_team_game_record, away_team_game_record = self.get_team_game_records(game["box_score"]["teams"],
                                                     game_record["home_team_espn_id"],
-                                                    game_record["away_team_espn_id"])
+                                                    game_record["away_team_espn_id"],
+                                                    game_record["home_team_id"],
+                                                    game_record["away_team_id"])
 
     return(game_record)
