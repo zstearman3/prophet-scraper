@@ -48,15 +48,32 @@ class Processor:
       if stat["label"] == "FG":
         team_game_record["field_goals_made"], team_game_record["field_goals_attempted"] = (
           parse_makes_attempts(stat["displayValue"]))
-      if stat["label"] == "3PT":
+      elif stat["label"] == "3PT":
         team_game_record["three_pointers_made"], team_game_record["three_pointers_attempted"] = (
           parse_makes_attempts(stat["displayValue"]))
-      if stat["label"] == "FT":
+      elif stat["label"] == "FT":
         team_game_record["free_throws_made"], team_game_record["free_throws_attempted"] = (
           parse_makes_attempts(stat["displayValue"]))
-      if stat["label"] == "Rebounds":
+      elif stat["label"] == "Rebounds":
         team_game_record["rebounds"] = stat["displayValue"]
-    print(team_game_record)
+      elif stat["label"] == "Offensive Rebounds":
+        team_game_record["offensive_rebounds"] = stat["displayValue"]
+      elif stat["label"] == "Defensive Rebounds":
+        team_game_record["defensive_rebounds"] = stat["displayValue"]
+      elif stat["label"] == "Assists":
+        team_game_record["assists"] = stat["displayValue"]
+      elif stat["label"] == "Steals":
+        team_game_record["steals"] = stat["displayValue"]
+      elif stat["label"] == "Blocks":
+        team_game_record["blocks"] = stat["displayValue"]
+      elif stat["label"] == "Turnovers":
+        team_game_record["turnovers"] = stat["displayValue"]
+      elif stat["label"] == "Technical Fouls":
+        team_game_record["technical_fouls"] = stat["displayValue"]
+      elif stat["label"] == "Flagrant Fouls":
+        team_game_record["flagrant_fouls"] = stat["displayValue"]
+      elif stat["label"] == "Largest Lead":
+        team_game_record["largest_lead"] = stat["displayValue"]
     return team_game_record
 
   def get_team_game_records(self, box_score, home_espn_id, away_espn_id, home_id, away_id):
