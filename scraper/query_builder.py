@@ -101,7 +101,7 @@ def get_team_game_query_strings(games_array):
   query = """
     INSERT INTO team_games {0} VALUES
     {1}
-    ON CONFLICT (team_id, game_espn_id)
+    ON CONFLICT (team_id, game_id)
     DO UPDATE SET
     {0} = {2}
   """.format(keys_string, games_string, excluded_string)

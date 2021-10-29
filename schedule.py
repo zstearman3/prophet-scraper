@@ -49,4 +49,8 @@ if __name__ == '__main__':
         if away_team_game != None:
             processed_team_games.append(away_team_game)
     client.update_games(processed_games)
+
+    # TODO: add game id to games...
+    # Calculate effective percentages...
+
     client.update_team_games(processed_team_games)
