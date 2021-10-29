@@ -1,4 +1,4 @@
-import processor_helpers
+import scraper.processor_helpers as processor_helpers
 
 class RosterProcessor:
   def format_roster(self, roster):

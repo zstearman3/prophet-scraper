@@ -44,9 +44,9 @@ if __name__ == '__main__':
         processed_game, home_team_game, away_team_game  = (
             processor.process_game_details(game, id_dictionary))
         processed_games.append(processed_game)
-        if home_team_game["team_id"] != None:
+        if home_team_game != None:
             processed_team_games.append(home_team_game)
-        if away_team_game["team_id"] != None:
+        if away_team_game != None:
             processed_team_games.append(away_team_game)
     client.update_games(processed_games)
-    print(processed_team_games)
+    client.update_team_games(processed_team_games)

@@ -4,8 +4,10 @@ import psycopg2
 from psycopg2 import Error
 from bs4 import BeautifulSoup
 
+import scraper.query_builder as query_builder
+
 from scraper.https_service import HTTPSService
-from scraper.processor import Processor
+from scraper.schedule_processor import ScheduleProcessor
 
 def replace_keys(my_string):
   my_string = my_string.replace("number", "jersey_number")
@@ -39,13 +41,13 @@ class Client:
 
   def schedule(self, date):
     service = HTTPSService()
-    processor = Processor()
+    processor = ScheduleProcessor()
     games = service.schedule(date)
     espn_ids = []
     game_results = []
 
     for game in games:
-      espn_id = processor.get_espn_id(game)
+      espn_id = processor.get_espn_id_from_uid(game)
       espn_ids.append(espn_id)
     for espn_id in espn_ids:
       results = service.box_score(espn_id)
@@ -152,61 +154,22 @@ class Client:
       id_dictionary[team[1]] = team[0]
     return id_dictionary
 
-  def get_game_query_strings(self, games_array):
-    keys = (
-      "espn_id",
-      "is_tournament",
-      "neutral_site",
-      "status",
-      "date",
-      "in_conference",
-      "home_team_id",
-      "home_team_score",
-      "away_team_id",
-      "away_team_score",
-      "home_team_first_half_score",
-      "home_team_second_half_score",
-      "away_team_first_half_score",
-      "away_team_second_half_score",
-      "home_team_winner",
-      "away_team_winner",
-    )
-    keys_string = "("
-    excluded_string = "("
-    for key in keys:
-      keys_string += f"{key}, "
-      excluded_string += f"EXCLUDED.{key}, "
-    keys_string = keys_string[:-2]
-    excluded_string = excluded_string[:-2]
-    keys_string += ")"
-    excluded_string += ")"
-    games_tuples = []
-    for game in games_array:
-      game_values = []
-      for key in keys:
-        value = game[key] if key in game else None
-        value = value.replace("'", "''") if isinstance(value, str) else value
-        game_values.append(value)
-      game_tuple = tuple(game_values)
-      games_tuples.append(game_tuple)
-    games_tuple = tuple(games_tuples)
-    games_string = str(games_tuple)[1:-1]
-    games_string = games_string.replace("None", "null")
-    games_string = games_string.replace('"', "'")
-    return keys_string, games_string, excluded_string
-
   def update_games(self, games_array):
-    keys, games, excluded = self.get_game_query_strings(games_array)
+    query = query_builder.get_game_query_strings(games_array)
     try:
-      query = """
-        INSERT INTO games {0} VALUES
-        {1}
-        ON CONFLICT (espn_id)
-        DO UPDATE SET
-        {0} = {2}
-      """.format(keys, games, excluded)
       cursor = self.connection.cursor()
       cursor.execute(query)
     except(Exception, Error) as error:
       print("Error while connecting to PostgreSQL", error)
     self.connection.commit()
+    print(f'{len(games_array)} games successfully added/updated!')
+
+  def update_team_games(self, team_games_array):
+    query = query_builder.get_team_game_query_strings(team_games_array)
+    try:
+      cursor = self.connection.cursor()
+      cursor.execute(query)
+    except(Exception, Error) as error:
+      print("Error while connecting to PostgreSQL", error)
+    self.connection.commit()
+    print(f'{len(team_games_array)} team_games successfully added/updated!')

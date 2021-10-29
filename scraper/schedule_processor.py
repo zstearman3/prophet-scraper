@@ -1,4 +1,5 @@
-import processor_helpers
+import scraper.processor_helpers as processor_helpers
+import scraper.processor_validators as processor_validators
 
 class ScheduleProcessor:
   def parse_team_game(self, team_game, team_id):
@@ -36,6 +37,15 @@ class ScheduleProcessor:
         team_game_record["largest_lead"] = stat["displayValue"]
     return team_game_record
 
+  def set_home_points(self, game_record):
+    game_record["points"] = self.home_team_score
+    game_record["points_allowed"] = self.away_team_score
+    return game_record
+
+  def set_away_points(self, game_record):
+    game_record["points"] = self.away_team_score
+    game_record["points_allowed"] = self.home_team_score
+    return game_record
 
   def get_team_game_records(self, box_score, home_espn_id, away_espn_id, home_id, away_id):
     home_team_game_record = {}
@@ -55,30 +65,35 @@ class ScheduleProcessor:
 
     away_team_game_record["home_game"] = False
     home_team_game_record["home_game"] = True
+    away_team_game_record["neutral_game"] = self.neutral_site
+    home_team_game_record["neutral_game"] = self.neutral_site
+    away_team_game_record["game_espn_id"] = self.game_espn_id
+    home_team_game_record["game_espn_id"] = self.game_espn_id
+
+    home_team_game_record = self.set_home_points(home_team_game_record)
+    away_team_game_record = self.set_away_points(away_team_game_record)
+
+    home_team_game_record = processor_validators.validate_game_record(home_team_game_record)
+    away_team_game_record = processor_validators.validate_game_record(away_team_game_record)
+
     return home_team_game_record, away_team_game_record
 
-  def process_game_details(self, game, id_dictionary):
-    game_record = {}
-    header = game["header"]
-    competition = header["competitions"][0]
-    home_team = competition["competitors"][0]
-    away_team = competition["competitors"][1]
-    game_record["espn_id"] = header["id"]
-    game_record["is_tournament"] = header["league"]["isTournament"]
-    game_record["neutral_site"] = competition["neutralSite"]
-    game_record["status"] = competition["status"]["type"]["description"]
-    game_record["date"] = competition["date"]
-    game_record["in_conference"] = competition["conferenceCompetition"]
-    game_record["home_team_espn_id"] = home_team["id"]
-    game_record["home_team_score"] = home_team["score"]
+
+  def process_team_scores(self, game_record, home_team, away_team):
+    self.home_team_score = home_team["score"]
+    self.away_team_score = away_team["score"]
+
+    game_record["home_team_score"] = self.home_team_score
+    game_record["away_team_score"] = self.away_team_score
+
     if "linescores" in home_team :
       game_record["home_team_first_half_score"] = home_team["linescores"][0]["displayValue"]
       game_record["home_team_second_half_score"] = home_team["linescores"][1]["displayValue"]
-    game_record["away_team_espn_id"] = away_team["id"]
-    game_record["away_team_score"] = away_team["score"]
+
     if "linescores" in away_team :
       game_record["away_team_first_half_score"] = away_team["linescores"][0]["displayValue"]
       game_record["away_team_second_half_score"] = away_team["linescores"][1]["displayValue"]
+
     if int(game_record["home_team_score"]) > 0 and int(game_record["away_team_score"]) > 0:
       if game_record["home_team_score"] > game_record["away_team_score"]:
         game_record["home_team_winner"] = True
@@ -86,6 +101,29 @@ class ScheduleProcessor:
       elif game_record["away_team_score"] > game_record["home_team_score"]:
         game_record["home_team_winner"] = False
         game_record["away_team_winner"] = True
+
+    return game_record
+
+  def process_game_details(self, game, id_dictionary):
+    game_record = {}
+    header = game["header"]
+    competition = header["competitions"][0]
+    home_team = competition["competitors"][0]
+    away_team = competition["competitors"][1]
+
+    self.neutral_site = competition["neutralSite"]
+    self.game_espn_id = header["id"]
+    game_record = self.process_team_scores(game_record, home_team, away_team)
+
+    game_record["espn_id"] = self.game_espn_id
+    game_record["is_tournament"] = header["league"]["isTournament"]
+    game_record["neutral_site"] = competition["neutralSite"]
+    game_record["status"] = competition["status"]["type"]["description"]
+    game_record["date"] = competition["date"]
+    game_record["in_conference"] = competition["conferenceCompetition"]
+    game_record["home_team_espn_id"] = home_team["id"]
+    game_record["away_team_espn_id"] = away_team["id"]
+
     if int(game_record["home_team_espn_id"]) in id_dictionary.keys():
       game_record["home_team_id"] = id_dictionary[int(game_record["home_team_espn_id"])]
     else:
@@ -102,3 +140,7 @@ class ScheduleProcessor:
                                                     game_record["away_team_id"])
 
     return(game_record, home_team_game_record, away_team_game_record)
+
+  def get_espn_id_from_uid(self, game):
+    espn_id = game['uid'].split("~e:", 1)[1]
+    return espn_id
