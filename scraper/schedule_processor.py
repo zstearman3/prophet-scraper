@@ -1,59 +1,19 @@
-def convert_height(height):
-  try:
-    height = height.split("'")
-    height = (int(height[0]) * 12) + int(height[1][:-1])
-    return height
-  except:
-    return None
+import processor_helpers
 
-def convert_weight(weight):
-  weight = weight.split(" ")
-  weight = int(weight[0]) if weight[0].isnumeric() else None
-  return weight
-
-def get_espn_id(espn_url):
-  espn_id = espn_url.split("id/")
-  espn_id = espn_id[1]
-  espn_id = espn_id.split("/")
-  espn_id = espn_id[0]
-  return espn_id
-
-def parse_makes_attempts(value_string):
-  values = value_string.split("-")
-  makes = values[0]
-  attempts = values[1]
-  return makes, attempts
-
-class Processor:
-  def format_roster(self, roster):
-    formatted_roster = []
-    for player in roster:
-      name = player["name"].split(" ", 1)
-      player["first_name"] = name[0]
-      player["last_name"] = name[1]
-      player["height"] = convert_height(player["height"])
-      player["weight"] = convert_weight(player["weight"])
-      player["espn_id"] = get_espn_id(player["espn_url"])
-      formatted_roster.append(player)
-    return formatted_roster
-
-  def get_espn_id(self, game):
-    espn_id = game['uid'].split("~e:", 1)[1]
-    return espn_id
-
+class ScheduleProcessor:
   def parse_team_game(self, team_game, team_id):
     team_game_record = {}
     team_game_record["team_id"] = team_id
     for stat in team_game["statistics"]:
       if stat["label"] == "FG":
         team_game_record["field_goals_made"], team_game_record["field_goals_attempted"] = (
-          parse_makes_attempts(stat["displayValue"]))
+          processor_helpers.parse_makes_attempts(stat["displayValue"]))
       elif stat["label"] == "3PT":
         team_game_record["three_pointers_made"], team_game_record["three_pointers_attempted"] = (
-          parse_makes_attempts(stat["displayValue"]))
+          processor_helpers.parse_makes_attempts(stat["displayValue"]))
       elif stat["label"] == "FT":
         team_game_record["free_throws_made"], team_game_record["free_throws_attempted"] = (
-          parse_makes_attempts(stat["displayValue"]))
+          processor_helpers.parse_makes_attempts(stat["displayValue"]))
       elif stat["label"] == "Rebounds":
         team_game_record["rebounds"] = stat["displayValue"]
       elif stat["label"] == "Offensive Rebounds":
@@ -75,6 +35,7 @@ class Processor:
       elif stat["label"] == "Largest Lead":
         team_game_record["largest_lead"] = stat["displayValue"]
     return team_game_record
+
 
   def get_team_game_records(self, box_score, home_espn_id, away_espn_id, home_id, away_id):
     home_team_game_record = {}

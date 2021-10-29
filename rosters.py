@@ -1,9 +1,9 @@
 from scraper.client import Client
-from scraper.processor import Processor
+from scraper.roster_processor import RosterProcessor
 
 client = Client()
 rosters = client.get_rosters()
-processor = Processor()
+processor = RosterProcessor()
 for id, roster in rosters.items():
   roster = processor.format_roster(roster)
   client.update_roster(id, roster)

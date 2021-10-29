@@ -2,7 +2,7 @@ import sys
 import getopt
 from datetime import datetime, timedelta
 from scraper.client import Client
-from scraper.processor import Processor
+from scraper.schedule_processor import ScheduleProcessor
 
 
 if __name__ == '__main__':
@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
 
     client = Client()
-    processor = Processor()
+    processor = ScheduleProcessor()
     games = []
     for i in range(num_days):
         days = timedelta(i)
