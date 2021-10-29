@@ -92,6 +92,8 @@ class Processor:
     elif team_box_score_2["team"]["id"] == home_espn_id:
       home_team_game_record = self.parse_team_game(team_box_score_2, home_id)
 
+    away_team_game_record["home_game"] = False
+    home_team_game_record["home_game"] = True
     return home_team_game_record, away_team_game_record
 
   def process_game_details(self, game, id_dictionary):
@@ -138,4 +140,4 @@ class Processor:
                                                     game_record["home_team_id"],
                                                     game_record["away_team_id"])
 
-    return(game_record)
+    return(game_record, home_team_game_record, away_team_game_record)

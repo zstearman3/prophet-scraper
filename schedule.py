@@ -38,8 +38,15 @@ if __name__ == '__main__':
         games.extend(client.schedule(start_date - days))
     id_dictionary = client.get_all_espn_ids()
     processed_games = []
+    processed_team_games = []
     game = games[0]
-    # for game in games:
-    processed_game = processor.process_game_details(game, id_dictionary)
-    processed_games.append(processed_game)
-    # client.update_games(processed_games)
+    for game in games:
+        processed_game, home_team_game, away_team_game  = (
+            processor.process_game_details(game, id_dictionary))
+        processed_games.append(processed_game)
+        if home_team_game["team_id"] != None:
+            processed_team_games.append(home_team_game)
+        if away_team_game["team_id"] != None:
+            processed_team_games.append(away_team_game)
+    client.update_games(processed_games)
+    print(processed_team_games)
