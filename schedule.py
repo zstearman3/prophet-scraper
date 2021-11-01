@@ -38,19 +38,21 @@ if __name__ == '__main__':
         games.extend(client.schedule(start_date - days))
     id_dictionary = client.get_all_espn_ids()
     processed_games = []
-    processed_team_games = []
+    team_games = []
     game = games[0]
     for game in games:
         processed_game, home_team_game, away_team_game  = (
             processor.process_game_details(game, id_dictionary))
         processed_games.append(processed_game)
         if home_team_game != None:
-            processed_team_games.append(home_team_game)
+            team_games.append(home_team_game)
         if away_team_game != None:
-            processed_team_games.append(away_team_game)
+            team_games.append(away_team_game)
     client.update_games(processed_games)
 
+    game_espn_ids = client.get_game_espn_ids(start_date, days)
+    team_games = processor.prepare_team_games(team_games, game_espn_ids)
     # TODO: add game id to games...
     # Calculate effective percentages...
 
-    client.update_team_games(processed_team_games)
+    client.update_team_games(team_games)

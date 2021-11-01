@@ -3,6 +3,7 @@ import requests
 import psycopg2
 from psycopg2 import Error
 from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
 
 import scraper.query_builder as query_builder
 
@@ -38,6 +39,21 @@ class Client:
       if (self.connection):
         cursor.close()
         return espn_ids
+
+  def _get_game_ids_between_dates(self, start_date, end_date):
+    espn_ids = []
+    start_string = start_date.strftime("%Y-%m-%d")
+    end_string = end_date.strftime("%Y-%m-%d")
+    try:
+      cursor = self.connection.cursor()
+      cursor.execute(f"SELECT id, espn_id FROM games WHERE date between '{start_string}' and '{end_string}'")
+      espn_ids = cursor.fetchall()
+    except(Exception, Error) as error:
+      print("Error while connecting to PostgreSQL", error)
+    finally:
+      if (self.connection):
+        cursor.close()
+      return espn_ids
 
   def schedule(self, date):
     service = HTTPSService()
@@ -152,6 +168,15 @@ class Client:
     id_dictionary = {}
     for team in espn_ids:
       id_dictionary[team[1]] = team[0]
+    return id_dictionary
+
+  def get_game_espn_ids(self, start_date, days):
+    # adding extra days to capture other timezones and start times
+    end_date = start_date + days + timedelta(2)
+    espn_ids = self._get_game_ids_between_dates(start_date, end_date)
+    id_dictionary = {}
+    for game in espn_ids:
+      id_dictionary[game[1]] = game[0]
     return id_dictionary
 
   def update_games(self, games_array):

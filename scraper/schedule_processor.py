@@ -141,6 +141,15 @@ class ScheduleProcessor:
 
     return(game_record, home_team_game_record, away_team_game_record)
 
+  def prepare_team_games(self, team_games, id_dictionary):
+    for team_game in team_games:
+      if int(team_game["game_espn_id"]) in id_dictionary.keys():
+        team_game["game_id"] = id_dictionary[int(team_game["game_espn_id"])]
+      else:
+        print(f"Could not find game with id={team_game['game_espn_id']}")
+
+    return team_games
+
   def get_espn_id_from_uid(self, game):
     espn_id = game['uid'].split("~e:", 1)[1]
     return espn_id

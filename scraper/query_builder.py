@@ -54,6 +54,7 @@ def get_team_game_query_strings(games_array):
   keys = (
     "game_espn_id",
     "team_id",
+    "game_id",
     "field_goals_made",
     "field_goals_attempted",
     "three_pointers_made",
