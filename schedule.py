@@ -52,7 +52,5 @@ if __name__ == '__main__':
 
     game_espn_ids = client.get_game_espn_ids(start_date, days)
     team_games = processor.prepare_team_games(team_games, game_espn_ids)
-    # TODO: add game id to games...
-    # Calculate effective percentages...
 
     client.update_team_games(team_games)

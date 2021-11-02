@@ -1,5 +1,7 @@
+from datetime import datetime
 import scraper.processor_helpers as processor_helpers
 import scraper.processor_validators as processor_validators
+from stat_calculator.team_game_calculator import TeamGameCalculator
 
 class ScheduleProcessor:
   def parse_team_game(self, team_game, team_id):
@@ -29,6 +31,8 @@ class ScheduleProcessor:
         team_game_record["blocks"] = stat["displayValue"]
       elif stat["label"] == "Turnovers":
         team_game_record["turnovers"] = stat["displayValue"]
+      elif stat["label"] == "Fouls":
+        team_game_record["fouls"] = stat["displayValue"]
       elif stat["label"] == "Technical Fouls":
         team_game_record["technical_fouls"] = stat["displayValue"]
       elif stat["label"] == "Flagrant Fouls":
@@ -139,6 +143,11 @@ class ScheduleProcessor:
                                                     game_record["home_team_id"],
                                                     game_record["away_team_id"])
 
+    if away_team_game_record != None:
+      home_team_game_record["opponent_game"] = away_team_game_record
+    if home_team_game_record != None:
+      away_team_game_record["opponent_game"] = home_team_game_record
+
     return(game_record, home_team_game_record, away_team_game_record)
 
   def prepare_team_games(self, team_games, id_dictionary):
@@ -148,8 +157,18 @@ class ScheduleProcessor:
       else:
         print(f"Could not find game with id={team_game['game_espn_id']}")
 
+      calculator = TeamGameCalculator(team_game)
+      team_game = calculator.prepare_team_game()
+      team_game = self._set_timestamps(team_game)
+
     return team_games
 
   def get_espn_id_from_uid(self, game):
     espn_id = game['uid'].split("~e:", 1)[1]
     return espn_id
+
+  def _set_timestamps(self, game):
+    time = datetime.now()
+    game["created_at"] = time.strftime('%Y-%m-%d %H:%M:%S')
+    game["updated_at"] = time.strftime('%Y-%m-%d %H:%M:%S')
+    return game
