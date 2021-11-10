@@ -4,32 +4,7 @@ from datetime import datetime, timedelta
 from scraper.client import Client
 from scraper.schedule_processor import ScheduleProcessor
 
-
-if __name__ == '__main__':
-    full_cmd_arguments = sys.argv
-    argument_list = full_cmd_arguments[1:]
-
-    short_options = "s:d:a"
-    long_options = ["start_date=", "days=", "all="]
-    start_date = datetime.strptime("03/02/2021", "%m/%d/%Y")
-    num_days = 1
-
-    try:
-        arguements, values = getopt.getopt(argument_list, short_options, long_options)
-    except getopt.error as err:
-        print(str(err))
-        sys.exit(2)
-
-    for current_arguement, current_value in arguements:
-        if current_arguement in ("-s", "--start_date"):
-            start_date = datetime.strptime(current_value, "%m/%d/%Y")
-        if current_arguement in ("-d", "--days"):
-            num_days = int(current_value)
-        if current_arguement in ("-a", "--all"):
-            get_all = True
-            year = current_value
-
-
+def import_games(start_date, num_days):
     client = Client()
     processor = ScheduleProcessor()
     games = []
@@ -39,11 +14,14 @@ if __name__ == '__main__':
     id_dictionary = client.get_all_espn_ids()
     processed_games = []
     team_games = []
+    if len(games) == 0:
+        return
     game = games[0]
     for game in games:
         processed_game, home_team_game, away_team_game  = (
             processor.process_game_details(game, id_dictionary))
-        processed_games.append(processed_game)
+        if processed_game != None:
+            processed_games.append(processed_game)
         if home_team_game != None:
             team_games.append(home_team_game)
         if away_team_game != None:
@@ -54,3 +32,30 @@ if __name__ == '__main__':
     team_games = processor.prepare_team_games(team_games, game_espn_ids)
 
     client.update_team_games(team_games)
+
+if __name__ == '__main__':
+    full_cmd_arguments = sys.argv
+    argument_list = full_cmd_arguments[1:]
+
+    short_options = "s:d:a"
+    long_options = ["start_date=", "days=", "all="]
+    start_date = datetime.strptime("11/10/2021", "%m/%d/%Y")
+    num_days = 1
+
+    try:
+        arguements, values = getopt.getopt(argument_list, short_options, long_options)
+    except getopt.error as err:
+        print(str(err))
+        sys.exit(2)
+
+    # Parse flags from cmd line. Start date and days are the only working options currently.
+    for current_arguement, current_value in arguements:
+        if current_arguement in ("-s", "--start_date"):
+            start_date = datetime.strptime(current_value, "%m/%d/%Y")
+        if current_arguement in ("-d", "--days"):
+            num_days = int(current_value)
+        if current_arguement in ("-a", "--all"):
+            get_all = True
+            year = current_value
+
+    import_games(start_date, num_days)

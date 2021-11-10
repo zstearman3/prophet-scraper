@@ -117,6 +117,10 @@ class ScheduleProcessor:
 
     self.neutral_site = competition["neutralSite"]
     self.game_espn_id = header["id"]
+
+    if "score" not in home_team or "score" not in away_team:
+      return None, None, None
+
     game_record = self.process_team_scores(game_record, home_team, away_team)
 
     game_record["espn_id"] = self.game_espn_id
@@ -143,9 +147,8 @@ class ScheduleProcessor:
                                                     game_record["home_team_id"],
                                                     game_record["away_team_id"])
 
-    if away_team_game_record != None:
+    if away_team_game_record != None and home_team_game_record != None:
       home_team_game_record["opponent_game"] = away_team_game_record
-    if home_team_game_record != None:
       away_team_game_record["opponent_game"] = home_team_game_record
 
     return(game_record, home_team_game_record, away_team_game_record)
